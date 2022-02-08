@@ -8,7 +8,7 @@ class ZoneTelechargementBridge extends BridgeAbstract {
 	 */
 
 	const NAME = 'Zone Telechargement';
-	const URI = 'https://www.zt-za.net/';
+	const URI = 'https://www.zone-telechargement.cam/';
 	const DESCRIPTION = 'Suivi de série sur Zone Telechargement';
 	const MAINTAINER = 'sysadminstory';
 	const PARAMETERS = array(
@@ -17,7 +17,7 @@ class ZoneTelechargementBridge extends BridgeAbstract {
 				'name' => 'URL de la série',
 				'type' => 'text',
 				'required' => true,
-				'title' => 'URL d\'une série sans le https://www.zt-za.com/',
+				'title' => 'URL d\'une série sans le https://www.zone-telechargement.cam/',
 				'exampleValue' => 'telecharger-series/31079-halt-and-catch-fire-saison-4-french-hd720p.html'),
 			'filter' => array(
 				'name' => 'Type de contenu',
@@ -45,8 +45,7 @@ class ZoneTelechargementBridge extends BridgeAbstract {
 	private function loadURL($url){
 		$header = array();
 		$opts = array(CURLOPT_USERAGENT => 'curl/7.64.0');
-		$html = getContents($url, $header, $opts)
-			or returnServerError('Could not request Zone Telechargement.');
+		$html = getContents($url, $header, $opts);
 		return str_get_html($html);
 	}
 
