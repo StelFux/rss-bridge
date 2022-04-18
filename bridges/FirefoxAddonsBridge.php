@@ -35,8 +35,7 @@ class FirefoxAddonsBridge extends BridgeAbstract {
 	}
 
 	public function collectData() {
-		$html = getSimpleHTMLDOM($this->getURI())
-			or returnServerError('Could not request: ' . $this->getURI());
+		$html = getSimpleHTMLDOM($this->getURI());
 
 		$this->feedName = $html->find('h1[class="AddonTitle"] > a', 0)->innertext;
 		$author = $html->find('span.AddonTitle-author > a', 0)->plaintext;
@@ -44,7 +43,6 @@ class FirefoxAddonsBridge extends BridgeAbstract {
 		foreach ($html->find('li.AddonVersionCard') as $li) {
 			$item = array();
 
-			$item['title'] = $li->find('h2.AddonVersionCard-version', 0)->plaintext;
 			$item['title'] = $li->find('h2.AddonVersionCard-version', 0)->plaintext;
 			$item['uid'] = $item['title'];
 			$item['uri'] = $this->getURI();
@@ -57,7 +55,14 @@ class FirefoxAddonsBridge extends BridgeAbstract {
 
 			$compatibility = $li->find('div.AddonVersionCard-compatibility', 0)->plaintext;
 			$license = $li->find('p.AddonVersionCard-license', 0)->innertext;
-			$downloadlink = $li->find('a.InstallButtonWrapper-download-link', 0)->href;
+
+			if ($li->find('a.InstallButtonWrapper-download-link', 0)) {
+				$downloadlink = $li->find('a.InstallButtonWrapper-download-link', 0)->href;
+
+			} elseif ($li->find('a.Button.Button--action.AMInstallButton-button.Button--puffy', 0)) {
+				$downloadlink = $li->find('a.Button.Button--action.AMInstallButton-button.Button--puffy', 0)->href;
+			}
+
 			$releaseNotes = $this->removeOutgoinglink($li->find('div.AddonVersionCard-releaseNotes', 0));
 
 			if (preg_match($this->xpiFileRegex, $downloadlink, $match)) {
