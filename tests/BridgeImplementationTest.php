@@ -67,7 +67,11 @@ class BridgeImplementationTest extends TestCase {
 		foreach($this->obj::PARAMETERS as $context => $params) {
 			if ($multiContexts) {
 				$this->assertIsString($context, 'invalid context name');
-				$this->assertNotEmpty($context, 'empty context name');
+
+				// Pixiv has a context that is the empty string, for BC.
+				if (! ($this->obj instanceof PixivBridge)) {
+					$this->assertNotEmpty($context, 'The context name cannot be empty');
+				}
 			}
 
 			if (empty($params)) {
@@ -205,14 +209,13 @@ class BridgeImplementationTest extends TestCase {
 
 	public function dataBridgesProvider() {
 		$bridges = array();
-		foreach (glob(PATH_LIB_BRIDGES . '*.php') as $path) {
+		foreach (glob(PATH_LIB_BRIDGES . '*Bridge.php') as $path) {
 			$bridges[basename($path, '.php')] = array($path);
 		}
 		return $bridges;
 	}
 
 	private function setBridge($path) {
-		require_once $path;
 		$this->class = basename($path, '.php');
 		$this->assertTrue(class_exists($this->class), 'class ' . $this->class . ' doesn\'t exist');
 		$this->obj = new $this->class();

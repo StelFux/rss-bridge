@@ -65,7 +65,7 @@ class AtomFormat extends FormatAbstract{
 			}
 
 			if (empty($entryContent))
-				$entryContent = $entryTitle;
+				$entryContent = ' ';
 
 			$entryAuthor = '';
 			if ($item->getAuthor()) {
@@ -154,14 +154,6 @@ EOD;
 		ini_set('mbstring.substitute_character', 'none');
 		$toReturn = mb_convert_encoding($toReturn, $this->getCharset(), 'UTF-8');
 		return $toReturn;
-	}
-
-	public function display(){
-		$this
-			->setContentType(self::MIME_TYPE . '; charset=' . $this->getCharset())
-			->callContentType();
-
-		return parent::display();
 	}
 
 	private function xml_encode($text){
