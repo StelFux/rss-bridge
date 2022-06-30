@@ -4,17 +4,19 @@ class GithubIssueBridge extends BridgeAbstract {
 	const MAINTAINER = 'Pierre Mazière';
 	const NAME = 'Github Issue';
 	const URI = 'https://github.com/';
-	const CACHE_TIMEOUT = 600; // 10min
+	const CACHE_TIMEOUT = 0; // 10min
 	const DESCRIPTION = 'Returns the issues or comments of an issue of a github project';
 
 	const PARAMETERS = array(
 		'global' => array(
 			'u' => array(
 				'name' => 'User name',
+				'exampleValue' => 'RSS-Bridge',
 				'required' => true
 			),
 			'p' => array(
 				'name' => 'Project name',
+				'exampleValue' => 'rss-bridge',
 				'required' => true
 			)
 		),
@@ -22,12 +24,18 @@ class GithubIssueBridge extends BridgeAbstract {
 			'c' => array(
 				'name' => 'Show Issues Comments',
 				'type' => 'checkbox'
+			),
+			'q' => array(
+				'name' => 'Search Query',
+				'defaultValue' => 'is:issue is:open sort:updated-desc',
+				'required' => true
 			)
 		),
 		'Issue comments' => array(
 			'i' => array(
 				'name' => 'Issue number',
 				'type' => 'number',
+				'exampleValue' => '2099',
 				'required' => true
 			)
 		)
@@ -37,7 +45,6 @@ class GithubIssueBridge extends BridgeAbstract {
 	const BRIDGE_OPTIONS = array(0 => 'Project Issues', 1 => 'Issue comments');
 	const URL_PATH = 'issues';
 	const SEARCH_QUERY_PATH = 'issues';
-	const SEARCH_QUERY = '?q=is%3Aissue+sort%3Aupdated-desc';
 
 	public function getName(){
 		$name = $this->getInput('u') . '/' . $this->getInput('p');
@@ -64,7 +71,7 @@ class GithubIssueBridge extends BridgeAbstract {
 			if($this->queriedContext === static::BRIDGE_OPTIONS[1]) {
 				$uri .= static::URL_PATH . '/' . $this->getInput('i');
 			} else {
-				$uri .= static::SEARCH_QUERY_PATH . static::SEARCH_QUERY;
+				$uri .= static::SEARCH_QUERY_PATH . '?q=' . urlencode($this->getInput('q'));
 			}
 			return $uri;
 		}
@@ -125,9 +132,8 @@ class GithubIssueBridge extends BridgeAbstract {
 
 		$author = $comment->find('.author', 0)->plaintext;
 
-		$title .= ' / ' . trim(
-			$comment->find('.timeline-comment-header-text', 0)->plaintext
-		);
+		$header = $comment->find('.timeline-comment-header > h3', 0);
+		$title .= ' / ' . ($header ? $header->plaintext : 'Activity');
 
 		$time = $comment->find('relative-time', 0);
 		if ($time === null) {
@@ -257,23 +263,22 @@ class GithubIssueBridge extends BridgeAbstract {
 		$path_segments = array_values(array_filter(explode('/', $url_components['path'])));
 
 		switch(count($path_segments)) {
-			case 2: { // Project issues
+			case 2: // Project issues
 				list($user, $project) = $path_segments;
 				$show_comments = 'off';
-			} break;
-			case 3: { // Project issues with issue comments
+				break;
+			case 3: // Project issues with issue comments
 				if($path_segments[2] !== static::URL_PATH) {
 					return null;
 				}
 				list($user, $project) = $path_segments;
 				$show_comments = 'on';
-			} break;
-			case 4: { // Issue comments
+				break;
+			case 4: // Issue comments
 				list($user, $project, /* issues */, $issue) = $path_segments;
-			} break;
-			default: {
+				break;
+			default:
 				return null;
-			}
 		}
 
 		return array(

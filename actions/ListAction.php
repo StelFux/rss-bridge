@@ -11,14 +11,14 @@
  * @link	https://github.com/rss-bridge/rss-bridge
  */
 
-class ListAction extends ActionAbstract {
+class ListAction implements ActionInterface
+{
 	public function execute() {
 		$list = new StdClass();
 		$list->bridges = array();
 		$list->total = 0;
 
 		$bridgeFac = new \BridgeFactory();
-		$bridgeFac->setWorkingDir(PATH_LIB_BRIDGES);
 
 		foreach($bridgeFac->getBridgeNames() as $bridgeName) {
 

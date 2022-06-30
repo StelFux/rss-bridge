@@ -91,32 +91,43 @@ abstract class FeedExpander extends BridgeAbstract {
 		/* Notice we do not use cache here on purpose:
 		 * we want a fresh view of the RSS stream each time
 		 */
-		$content = getContents($url)
+
+		$mimeTypes = [
+			MrssFormat::MIME_TYPE,
+			AtomFormat::MIME_TYPE,
+			'*/*',
+		];
+		$httpHeaders = ['Accept: ' . implode(', ', $mimeTypes)];
+		$content = getContents($url, $httpHeaders)
 			or returnServerError('Could not request ' . $url);
 		$rssContent = simplexml_load_string(trim($content));
+
+		if ($rssContent === false) {
+			throw new \Exception('Unable to parse string as xml');
+		}
 
 		Debug::log('Detecting feed format/version');
 		switch(true) {
 		case isset($rssContent->item[0]):
 			Debug::log('Detected RSS 1.0 format');
 			$this->feedType = self::FEED_TYPE_RSS_1_0;
+			$this->collectRss1($rssContent, $maxItems);
 			break;
 		case isset($rssContent->channel[0]):
 			Debug::log('Detected RSS 0.9x or 2.0 format');
 			$this->feedType = self::FEED_TYPE_RSS_2_0;
+			$this->collectRss2($rssContent, $maxItems);
 			break;
 		case isset($rssContent->entry[0]):
 			Debug::log('Detected ATOM format');
 			$this->feedType = self::FEED_TYPE_ATOM_1_0;
+			$this->collectAtom1($rssContent, $maxItems);
 			break;
 		default:
 			Debug::log('Unknown feed format/version');
 			returnServerError('The feed format is unknown!');
 			break;
 		}
-
-		Debug::log('Calling function "collect_' . $this->feedType . '_data"');
-		$this->{'collect_' . $this->feedType . '_data'}($rssContent, $maxItems);
 
 		return $this;
 	}
@@ -134,8 +145,8 @@ abstract class FeedExpander extends BridgeAbstract {
 	 * @todo Instead of passing $maxItems to all functions, just add all items
 	 * and remove excessive items later.
 	 */
-	protected function collect_RSS_1_0_data($rssContent, $maxItems){
-		$this->load_RSS_2_0_feed_data($rssContent->channel[0]);
+	protected function collectRss1($rssContent, $maxItems){
+		$this->loadRss2Data($rssContent->channel[0]);
 		foreach($rssContent->item as $item) {
 			Debug::log('parsing item ' . var_export($item, true));
 			$tmp_item = $this->parseItem($item);
@@ -159,13 +170,13 @@ abstract class FeedExpander extends BridgeAbstract {
 	 * @todo Instead of passing $maxItems to all functions, just add all items
 	 * and remove excessive items later.
 	 */
-	protected function collect_RSS_2_0_data($rssContent, $maxItems){
+	protected function collectRss2($rssContent, $maxItems){
 		$rssContent = $rssContent->channel[0];
 		Debug::log('RSS content is ===========\n'
 		. var_export($rssContent, true)
 		. '===========');
 
-		$this->load_RSS_2_0_feed_data($rssContent);
+		$this->loadRss2Data($rssContent);
 		foreach($rssContent->item as $item) {
 			Debug::log('parsing item ' . var_export($item, true));
 			$tmp_item = $this->parseItem($item);
@@ -189,8 +200,8 @@ abstract class FeedExpander extends BridgeAbstract {
 	 * @todo Instead of passing $maxItems to all functions, just add all items
 	 * and remove excessive items later.
 	 */
-	protected function collect_ATOM_1_0_data($content, $maxItems){
-		$this->load_ATOM_feed_data($content);
+	protected function collectAtom1($content, $maxItems){
+		$this->loadAtomData($content);
 		foreach($content->entry as $item) {
 			Debug::log('parsing item ' . var_export($item, true));
 			$tmp_item = $this->parseItem($item);
@@ -202,16 +213,6 @@ abstract class FeedExpander extends BridgeAbstract {
 	}
 
 	/**
-	 * Convert RSS 2.0 time to timestamp
-	 *
-	 * @param object $item A feed item
-	 * @return int The timestamp
-	 */
-	protected function RSS_2_0_time_to_timestamp($item){
-		return DateTime::createFromFormat('D, d M Y H:i:s e', $item->pubDate)->getTimestamp();
-	}
-
-	/**
 	 * Load RSS 2.0 feed data into RSS-Bridge
 	 *
 	 * @param object $rssContent The RSS content
@@ -219,7 +220,7 @@ abstract class FeedExpander extends BridgeAbstract {
 	 *
 	 * @todo set title, link, description, language, and so on
 	 */
-	protected function load_RSS_2_0_feed_data($rssContent){
+	protected function loadRss2Data($rssContent){
 		$this->title = trim((string)$rssContent->title);
 		$this->uri = trim((string)$rssContent->link);
 
@@ -234,7 +235,7 @@ abstract class FeedExpander extends BridgeAbstract {
 	 * @param object $content The Atom content
 	 * @return void
 	 */
-	protected function load_ATOM_feed_data($content){
+	protected function loadAtomData($content){
 		$this->title = (string)$content->title;
 
 		// Find best link (only one, or first of 'alternate')
@@ -271,7 +272,7 @@ abstract class FeedExpander extends BridgeAbstract {
 	 */
 	protected function parseATOMItem($feedItem){
 		// Some ATOM entries also contain RSS 2.0 fields
-		$item = $this->parseRSS_2_0_Item($feedItem);
+		$item = $this->parseRss2Item($feedItem);
 
 		if(isset($feedItem->id)) $item['uri'] = (string)$feedItem->id;
 		if(isset($feedItem->title)) $item['title'] = (string)$feedItem->title;
@@ -306,7 +307,7 @@ abstract class FeedExpander extends BridgeAbstract {
 	 * @todo To reduce confusion, the RSS-Bridge item should maybe have a class
 	 * of its own?
 	 */
-	protected function parseRSS_0_9_1_Item($feedItem){
+	protected function parseRss091Item($feedItem){
 		$item = array();
 		if(isset($feedItem->link)) $item['uri'] = (string)$feedItem->link;
 		if(isset($feedItem->title)) $item['title'] = (string)$feedItem->title;
@@ -327,9 +328,9 @@ abstract class FeedExpander extends BridgeAbstract {
 	 * @todo To reduce confusion, the RSS-Bridge item should maybe have a class
 	 * of its own?
 	 */
-	protected function parseRSS_1_0_Item($feedItem){
+	protected function parseRss1Item($feedItem){
 		// 1.0 adds optional elements around the 0.91 standard
-		$item = $this->parseRSS_0_9_1_Item($feedItem);
+		$item = $this->parseRss091Item($feedItem);
 
 		$namespaces = $feedItem->getNamespaces(true);
 		if(isset($namespaces['dc'])) {
@@ -351,9 +352,9 @@ abstract class FeedExpander extends BridgeAbstract {
 	 * @todo To reduce confusion, the RSS-Bridge item should maybe have a class
 	 * of its own?
 	 */
-	protected function parseRSS_2_0_Item($feedItem){
+	protected function parseRss2Item($feedItem){
 		// Primary data is compatible to 0.91 with some additional data
-		$item = $this->parseRSS_0_9_1_Item($feedItem);
+		$item = $this->parseRss091Item($feedItem);
 
 		$namespaces = $feedItem->getNamespaces(true);
 		if(isset($namespaces['dc'])) $dc = $feedItem->children($namespaces['dc']);
@@ -407,10 +408,10 @@ abstract class FeedExpander extends BridgeAbstract {
 	protected function parseItem($item){
 		switch($this->feedType) {
 		case self::FEED_TYPE_RSS_1_0:
-			return $this->parseRSS_1_0_Item($item);
+			return $this->parseRss1Item($item);
 			break;
 		case self::FEED_TYPE_RSS_2_0:
-			return $this->parseRSS_2_0_Item($item);
+			return $this->parseRss2Item($item);
 			break;
 		case self::FEED_TYPE_ATOM_1_0:
 			return $this->parseATOMItem($item);

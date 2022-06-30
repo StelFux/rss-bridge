@@ -3,6 +3,8 @@
   <description>Created with the PHP Coding Standard Generator. http://edorian.github.com/php-coding-standard-generator/</description>
   <exclude-pattern>./static</exclude-pattern>
   <exclude-pattern>./vendor</exclude-pattern>
+  <exclude-pattern>./config.default.ini.php</exclude-pattern>
+  <exclude-pattern>./config.ini.php</exclude-pattern>
   <!-- Duplicate class names are not allowed -->
   <rule ref="Generic.Classes.DuplicateClassName"/>
   <!-- Statements must not be empty -->
@@ -13,6 +15,8 @@
   <rule ref="Generic.CodeAnalysis.UnnecessaryFinalModifier"/>
   <!-- Do not override methods to call their parent -->
   <rule ref="Generic.CodeAnalysis.UselessOverridingMethod"/>
+  <!-- Do not allow UTF-8 byte-order mark -->
+  <rule ref="Generic.Files.ByteOrderMark"/>
   <!-- Make sure the concatenation operator has spaces around it -->
   <rule ref="Squiz.Strings.ConcatenationSpacing">
     <properties>
@@ -100,6 +104,4 @@
   <rule ref="Squiz.Strings.DoubleQuoteUsage">
     <exclude name="Squiz.Strings.DoubleQuoteUsage.ContainsVar" />
   </rule>
-  <!-- Always use the long array syntax -->
-  <rule ref="Generic.Arrays.DisallowShortArraySyntax" />
 </ruleset>

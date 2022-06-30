@@ -9,6 +9,7 @@ class SoundCloudBridge extends BridgeAbstract {
 	const PARAMETERS = array(array(
 		'u' => array(
 			'name' => 'username',
+			'exampleValue' => 'thekidlaroi',
 			'required' => true
 		),
 		't' => array(
@@ -114,7 +115,7 @@ HTML;
 			return;
 
 		$cacheFac = new CacheFactory();
-		$cacheFac->setWorkingDir(PATH_LIB_CACHES);
+
 		$this->clientIDCache = $cacheFac->create(Configuration::getConfig('cache', 'type'));
 		$this->clientIDCache->setScope(get_called_class());
 		$this->clientIDCache->setKey(array('client_id'));

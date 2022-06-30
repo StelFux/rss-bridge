@@ -12,6 +12,7 @@ class ElloBridge extends BridgeAbstract {
 			'u' => array(
 				'name' => 'Username',
 				'required' => true,
+				'exampleValue' => 'zteph',
 				'title' => 'Username'
 			)
 		),
@@ -19,6 +20,7 @@ class ElloBridge extends BridgeAbstract {
 			's' => array(
 				'name' => 'Search',
 				'required' => true,
+				'exampleValue' => 'bird',
 				'title' => 'Search'
 			)
 		)
@@ -121,7 +123,7 @@ class ElloBridge extends BridgeAbstract {
 
 	private function getAPIKey() {
 		$cacheFac = new CacheFactory();
-		$cacheFac->setWorkingDir(PATH_LIB_CACHES);
+
 		$cache = $cacheFac->create(Configuration::getConfig('cache', 'type'));
 		$cache->setScope(get_called_class());
 		$cache->setKey(array('key'));

@@ -11,7 +11,6 @@ class HtmlFormat extends FormatAbstract {
 
 		// Dynamically build buttons for all formats (except HTML)
 		$formatFac = new FormatFactory();
-		$formatFac->setWorkingDir(PATH_LIB_FORMATS);
 
 		$buttons = '';
 		$links = '';
@@ -45,13 +44,14 @@ class HtmlFormat extends FormatAbstract {
 			$entryTitle = $this->sanitizeHtml(strip_tags($item->getTitle()));
 			$entryUri = $item->getURI() ?: $uri;
 
-			$entryTimestamp = '';
+			$entryDate = '';
 			if($item->getTimestamp()) {
-				$entryTimestamp = '<time datetime="'
-				. date(DATE_ATOM, $item->getTimestamp())
-				. '">'
-				. date(DATE_ATOM, $item->getTimestamp())
-				. '</time>';
+
+				$entryDate = sprintf(
+					'<time datetime="%s">%s</time>',
+					date('Y-m-d H:i:s', $item->getTimestamp()),
+					date('Y-m-d H:i:s', $item->getTimestamp())
+				);
 			}
 
 			$entryContent = '';
@@ -66,13 +66,11 @@ class HtmlFormat extends FormatAbstract {
 				$entryEnclosures = '<div class="attachments"><p>Attachments:</p>';
 
 				foreach($item->getEnclosures() as $enclosure) {
+					$template = '<li class="enclosure"><a href="%s" rel="noopener noreferrer nofollow">%s</a></li>';
 					$url = $this->sanitizeHtml($enclosure);
+					$anchorText = substr($url, strrpos($url, '/') + 1);
 
-					$entryEnclosures .= '<li class="enclosure"><a href="'
-					. $url
-					. '">'
-					. substr($url, strrpos($url, '/') + 1)
-					. '</a></li>';
+					$entryEnclosures .= sprintf($template, $url, $anchorText);
 				}
 
 				$entryEnclosures .= '</div>';
@@ -96,7 +94,7 @@ class HtmlFormat extends FormatAbstract {
 
 <section class="feeditem">
 	<h2><a class="itemtitle" href="{$entryUri}">{$entryTitle}</a></h2>
-	{$entryTimestamp}
+	{$entryDate}
 	{$entryAuthor}
 	{$entryContent}
 	{$entryEnclosures}
@@ -136,14 +134,6 @@ EOD;
 		ini_set('mbstring.substitute_character', 'none');
 		$toReturn = mb_convert_encoding($toReturn, $this->getCharset(), 'UTF-8');
 		return $toReturn;
-	}
-
-	public function display() {
-		$this
-			->setContentType(self::MIME_TYPE . '; charset=' . $this->getCharset())
-			->callContentType();
-
-		return parent::display();
 	}
 
 	private function buildButton($format, $query) {

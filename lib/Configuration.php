@@ -28,7 +28,7 @@ final class Configuration {
 	 *
 	 * @todo Replace this property by a constant.
 	 */
-	public static $VERSION = 'dev.2022-01-20';
+	public static $VERSION = 'dev.2022-06-14';
 
 	/**
 	 * Holds the configuration data.
@@ -79,9 +79,9 @@ final class Configuration {
 	public static function verifyInstallation() {
 
 		// Check PHP version
-		if(version_compare(PHP_VERSION, '7.1.0') === -1)
-			self::reportError('RSS-Bridge requires at least PHP version 7.1.0!');
-
+		if(version_compare(PHP_VERSION, '7.4.0') === -1) {
+			self::reportError('RSS-Bridge requires at least PHP version 7.4.0!');
+		}
 		// extensions check
 		if(!extension_loaded('openssl'))
 			self::reportError('"openssl" extension not loaded. Please check "php.ini"');
@@ -101,10 +101,6 @@ final class Configuration {
 
 		if(!extension_loaded('json'))
 			self::reportError('"json" extension not loaded. Please check "php.ini"');
-
-		// Check cache folder permissions (write permissions required)
-		if(!is_writable(PATH_CACHE))
-			self::reportError('RSS-Bridge does not have write permissions for ' . PATH_CACHE . '!');
 
 	}
 

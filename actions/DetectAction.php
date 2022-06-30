@@ -11,7 +11,10 @@
  * @link	https://github.com/rss-bridge/rss-bridge
  */
 
-class DetectAction extends ActionAbstract {
+class DetectAction implements ActionInterface
+{
+	public $userData = [];
+
 	public function execute() {
 		$targetURL = $this->userData['url']
 			or returnClientError('You must specify a url!');
@@ -20,7 +23,6 @@ class DetectAction extends ActionAbstract {
 			or returnClientError('You must specify a format!');
 
 		$bridgeFac = new \BridgeFactory();
-		$bridgeFac->setWorkingDir(PATH_LIB_BRIDGES);
 
 		foreach($bridgeFac->getBridgeNames() as $bridgeName) {
 
