@@ -66,7 +66,6 @@ EOD;
 		$bridgeList = $bridgeFac->getBridgeNames();
 
 		$formatFac = new FormatFactory();
-		$formatFac->setWorkingDir(PATH_LIB_FORMATS);
 		$formats = $formatFac->getFormatNames();
 
 		$totalBridges = count($bridgeList);
@@ -195,7 +194,7 @@ EOD;
 	 * if enabled.
 	 * @return string The home page
 	 */
-	static function create($showInactive = true) {
+	public static function create($showInactive = true) {
 
 		$totalBridges = 0;
 		$totalActiveBridges = 0;

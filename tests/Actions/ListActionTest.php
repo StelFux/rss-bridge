@@ -1,5 +1,9 @@
 <?php
 
+namespace RssBridge\Tests\Actions;
+
+use ActionFactory;
+use BridgeFactory;
 use PHPUnit\Framework\TestCase;
 
 class ListActionTest extends TestCase {
@@ -74,10 +78,8 @@ class ListActionTest extends TestCase {
 
 	private function initAction() {
 		$actionFac = new ActionFactory();
-		$actionFac->setWorkingDir(PATH_LIB_ACTIONS);
 
 		$action = $actionFac->create('list');
-		$action->setUserData(array()); /* no user data required */
 
 		ob_start();
 		$action->execute();

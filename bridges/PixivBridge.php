@@ -3,7 +3,6 @@ class PixivBridge extends BridgeAbstract {
 
 	// Good resource on API return values (Ex: illustType):
 	// https://hackage.haskell.org/package/pixiv-0.1.0/docs/Web-Pixiv-Types.html
-	const MAINTAINER = 'Yaman Qalieh';
 	const NAME = 'Pixiv Bridge';
 	const URI = 'https://www.pixiv.net/';
 	const DESCRIPTION = 'Returns the tag search from pixiv.net';
@@ -29,8 +28,7 @@ class PixivBridge extends BridgeAbstract {
 								  'Novels' => 'novels/')
 			),
 		),
-		// Backwards compatibility: Original bridge only had tags
-		'' => array(
+		'Tag' => array(
 			'tag' => array(
 				'name' => 'Query to search',
 				'exampleValue' => 'オリジナル',
@@ -48,7 +46,7 @@ class PixivBridge extends BridgeAbstract {
 
 	// maps from URLs to json keys by context
 	const JSON_KEY_MAP = array(
-		'' => array(
+		'Tag' => array(
 			'illustrations/' => 'illust',
 			'manga/' => 'manga',
 			'novels/' => 'novel'
@@ -65,8 +63,7 @@ class PixivBridge extends BridgeAbstract {
 
 	public function getName() {
 		switch($this->queriedContext) {
-			// Tags context
-			case '':
+			case 'Tag':
 				$context = 'Tag';
 				$query = $this->getInput('tag');
 				break;
@@ -84,8 +81,7 @@ class PixivBridge extends BridgeAbstract {
 
 	public function getURI() {
 		switch($this->queriedContext) {
-		// Tags context
-		case '':
+		case 'Tag':
 			$uri = static::URI . 'tags/' . urlencode($this->getInput('tag') ?? '');
 			break;
 		case 'User':
@@ -102,8 +98,7 @@ class PixivBridge extends BridgeAbstract {
 
 	private function getSearchURI($mode) {
 		switch($this->queriedContext) {
-		// Tags context
-		case '':
+		case 'Tag':
 			$query = urlencode($this->getInput('tag'));
 			$uri = static::URI . 'ajax/search/top/' . $query;
 			break;
@@ -120,7 +115,7 @@ class PixivBridge extends BridgeAbstract {
 	private function getDataFromJSON($json, $json_key) {
 		$json = $json['body'][$json_key];
 		// Tags context contains subkey
-		if ($this->queriedContext == '') {
+		if ($this->queriedContext == 'Tag') {
 			$json = $json['data'];
 		}
 		return $json;
@@ -144,7 +139,6 @@ class PixivBridge extends BridgeAbstract {
 	}
 
 	public function collectData() {
-
 		$content = $this->collectWorksArray();
 
 		$content = array_filter($content, function($v, $k) {
@@ -168,7 +162,7 @@ class PixivBridge extends BridgeAbstract {
 			$item['title'] = $result['title'];
 			$item['author'] = $result['userName'];
 			$item['timestamp'] = $result['updateDate'];
-			$item['tags'] = $result['tags'];
+			$item['categories'] = $result['tags'];
 			$cached_image = $this->cacheImage($result['url'], $result['id'],
 											  array_key_exists('illustType', $result));
 			$item['content'] = "<img src='" . $cached_image . "' />";

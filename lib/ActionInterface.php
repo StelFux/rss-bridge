@@ -16,19 +16,11 @@
  */
 interface ActionInterface {
 	/**
-	 * Set user data for the action to consume.
-	 *
-	 * @param array $userData An associative array of user data.
-	 * @return void
-	 */
-	function setUserData($userData);
-
-	/**
 	 * Execute the action.
 	 *
 	 * Note: This function directly outputs data to the user.
 	 *
 	 * @return void
 	 */
-	function execute();
+	public function execute();
 }

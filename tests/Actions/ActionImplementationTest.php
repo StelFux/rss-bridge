@@ -1,5 +1,8 @@
 <?php
 
+namespace RssBridge\Tests\Actions;
+
+use ActionInterface;
 use PHPUnit\Framework\TestCase;
 
 class ActionImplementationTest extends TestCase {
@@ -28,15 +31,15 @@ class ActionImplementationTest extends TestCase {
 	 * @dataProvider dataActionsProvider
 	 */
 	public function testVisibleMethods($path) {
-		$allowedActionAbstract = get_class_methods(ActionAbstract::class);
-		sort($allowedActionAbstract);
+		$allowedMethods = get_class_methods(ActionInterface::class);
+		sort($allowedMethods);
 
 		$this->setAction($path);
 
 		$methods = get_class_methods($this->obj);
 		sort($methods);
 
-		$this->assertEquals($allowedActionAbstract, $methods);
+		$this->assertEquals($allowedMethods, $methods);
 	}
 
 	public function dataActionsProvider() {
@@ -48,7 +51,7 @@ class ActionImplementationTest extends TestCase {
 	}
 
 	private function setAction($path) {
-		$this->class = basename($path, '.php');
+		$this->class = '\\' . basename($path, '.php');
 		$this->assertTrue(class_exists($this->class), 'class ' . $this->class . ' doesn\'t exist');
 		$this->obj = new $this->class();
 	}

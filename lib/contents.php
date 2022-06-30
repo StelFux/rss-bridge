@@ -67,7 +67,7 @@ function getContents(
 	bool $returnFull = false
 ) {
 	$cacheFactory = new CacheFactory();
-	$cacheFactory->setWorkingDir(PATH_LIB_CACHES);
+
 	$cache = $cacheFactory->create(Configuration::getConfig('cache', 'type'));
 	$cache->setScope('server');
 	$cache->purgeCache(86400); // 24 hours (forced)
@@ -312,7 +312,7 @@ function getSimpleHTMLDOMCached($url,
 
 	// Initialize cache
 	$cacheFac = new CacheFactory();
-	$cacheFac->setWorkingDir(PATH_LIB_CACHES);
+
 	$cache = $cacheFac->create(Configuration::getConfig('cache', 'type'));
 	$cache->setScope('pages');
 	$cache->purgeCache(86400); // 24 hours (forced)
@@ -369,7 +369,8 @@ function getMimeType($url) {
 			'jpg' => 'image/jpeg',
 			'gif' => 'image/gif',
 			'png' => 'image/png',
-			'image' => 'image/*'
+			'image' => 'image/*',
+			'mp3' => 'audio/mpeg',
 		);
 		// '@' is used to mute open_basedir warning, see issue #818
 		if (@is_readable('/etc/mime.types')) {
